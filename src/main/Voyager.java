@@ -1,10 +1,13 @@
 package main;
 
+import java.util.ArrayList;
+
 public class Voyager extends Entity {
 	//attributes
 	public static int id;
 	public String power;
 	public boolean awakened;
+	public ArrayList<String> inventory;
 	public int[] relations;
 	
 	//constructor
@@ -12,9 +15,9 @@ public class Voyager extends Entity {
 		this.name = name;
 		this.id = id;
 		awakened = false;
+		inventory = new ArrayList<>();
 		super.level = 1;
 		super.exp = 0;
-		super.status = s.WANDERING;
 		
 		//set all relationship stats to 0
 		relations = new int[totalVoyagers];
