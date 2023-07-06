@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Voyager extends Entity {
 	//attributes
-	public static int id;
+	public int id;
 	public String power;
 	public boolean awakened;
 	public ArrayList<String> inventory;
@@ -25,4 +25,5 @@ public class Voyager extends Entity {
 			relations[i] = 0;
 		}
 	}
+	
 }

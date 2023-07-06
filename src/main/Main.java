@@ -40,7 +40,8 @@ public class Main {
 		//saves names in voyagerNames array list
 		while (input != "") {
 			System.out.print("Voyager " + id + ": ");
-			input = in.nextLine();
+			//input = in.nextLine();
+			input = "";////////////////////////////////////////////////////////////////////////////////////////////////TEMP CHANGE
 			voyagerNames.add(input);
 			id++;	
 		}
@@ -91,12 +92,14 @@ public class Main {
 	public static void sortVoyagers() {
 		int realm = 0;
 		int voyager;
+		ArrayList<Voyager> unsortedVoyagers = new ArrayList<>();
+		unsortedVoyagers.addAll(voyagers);
 		
-		while (!voyagers.isEmpty()) {
-			voyager = r.nextInt(voyagers.size());
-			voyagersInRealm[realm].add(voyagers.get(voyager));
+		while (!unsortedVoyagers.isEmpty()) {
+			voyager = r.nextInt(unsortedVoyagers.size());
+			voyagersInRealm[realm].add(unsortedVoyagers.get(voyager));
 			realm = r.nextInt(23);
-			voyagers.remove(voyager);
+			unsortedVoyagers.remove(voyager);
 		}
 		
 		//debug, shows which voyagers are in each realm
@@ -172,21 +175,23 @@ public class Main {
 		int event;
 		int variable;
 				
-		for (Voyager voyager : party) {
-			variable = 5;
-			if (party.size() < 2)
-				variable = 3;
-			event = r.nextInt(variable);
-			
-			if (event < 1) { findItem(voyager); } //0
-			else if (event < 3) { encounter(voyager); } //1,2
-			else { interact(voyager); } //3,4
+		for (Voyager voyager : voyagers) {
+			if (party.contains(voyager)) {
+				variable = 5;
+				if (party.size() < 2)
+					variable = 3;
+				event = r.nextInt(variable);
+				
+				if (event < 1) { findItem(voyager); } //0
+				else if (event < 3) { encounter(voyager); } //1,2
+				else { interact(voyager); } //3,4
+			}
 		}
 	}
 	
 	public static void findItem(Voyager voyager) {
 		String item = items[r.nextInt(4)];
-		System.out.println(voyager.name + " finds a " + item);
+		System.out.println(voyager.name + " finds a " + item + ".");
 		voyager.inventory.add(item);
 	}
 
@@ -232,29 +237,38 @@ public class Main {
 		} else {
 			System.out.print("dies.");
 			voyagersInRealm[currentRealm].add(voyager);
+			party.remove(voyager);
+			//TODO:create a method for death
 		}
-		
+		//TODO: add in healing mechanics & injured state
 		System.out.println();
 	}
 	
-	public static void interact(Voyager voyager) {
-		//TODO
-		System.out.println("INTERACTION");
+	//old method, delete later
+	public static void interactOLD(Voyager voyager) {
+		//assigns the random number range based on the party size
+		int variable = 6;
+		if (party.size() < 3)
+			variable = 3;
+		else if (party.size() < 4)
+			variable = 5;
 		
-		int people = r.nextInt(6);
 		
-		if(people < 3) {
-			interact2(getUniqueVoyagers(2, voyager));
-		} else if (people < 5) {
-			interact3(getUniqueVoyagers(3, voyager));
+		int rr = r.nextInt(variable);
+		
+		if(rr < 3) {
+			//interact2(getUniqueVoyagers(2, voyager));
+		} else if (rr < 5) {
+			System.out.println("INTERACT 3");
+			//interact3(getUniqueVoyagers(3, voyager));
 		} else {
-			interact4(getUniqueVoyagers(4, voyager));
+			System.out.println("INTERACT 4");
+			//interact4(getUniqueVoyagers(4, voyager));
 		}
 	}
 	
-	public static void interact2(ArrayList<Voyager> voyagers) {
-		Voyager A = voyagers.get(0);
-		Voyager B = voyagers.get(1);
+	public static void interact(Voyager A) {
+		Voyager B = getUniqueVoyager(A);
 		int relation = A.relations[B.id];
 
 		int gift = 5;
@@ -288,7 +302,7 @@ public class Main {
 		int event = r.nextInt(total);
 		
 		if (event < gift) {
-			System.out.println(A.name + " gives " + B.name + " an gift.");
+			System.out.println(A.name + " gives " + B.name + " a gift.");
 		} else if (event < gift + stories) {
 			System.out.println(A.name + " and " + B.name + " share stories.");
 		} else if (event < gift + stories + train) {
@@ -308,26 +322,30 @@ public class Main {
 		} else if (event < gift + stories + train + mentor + argument + prank + supplies + rescue + steal + gossip) {
 			System.out.println(A.name + " and "  + B.name + " share gossip about the others.");
 		} else {
-			//TODO: attack
+			System.out.println(A.name + " and "  + B.name + " get into a fight.");
 		}
 	}
 	
-	public static void interact3(ArrayList<Voyager> voyagers) {
-
-	}
-
-	public static void interact4(ArrayList<Voyager> voyagers) {
-
+	//gets a voyager that is not the one in the parameter
+	public static Voyager getUniqueVoyager(Voyager A) {
+		ArrayList<Voyager> party2 = new ArrayList<>();
+		party2.addAll(party);
+		party2.remove(A);
+		Voyager B = party2.get(r.nextInt(party2.size()));
+		return B;
 	}
 	
-	public static ArrayList<Voyager> getUniqueVoyagers(int total, Voyager A) {
+	//gets the specified number of voyagers without repeats
+	public static ArrayList<Voyager> getUniqueVoyagers(int total) {
 		ArrayList<Voyager> output = new ArrayList<>();
 		ArrayList<Voyager> party2 = new ArrayList<>();
 		party2.addAll(party);
 		
-		output.add(A);
+		Voyager B;
 		while (output.size() < total) {
-			output.add(party2.get(r.nextInt(party2.size()-1)));
+			B = party2.get(r.nextInt(party2.size()));
+			output.add(B);
+			party2.remove(B);
 		}
 		
 		return output;
