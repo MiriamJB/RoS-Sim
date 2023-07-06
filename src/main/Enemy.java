@@ -5,6 +5,6 @@ public class Enemy extends Entity{
 	public Enemy(String name, int level) {
 		super.name = name;
 		super.level = level;
-		super.exp = level^2;
+		super.exp = level*level;
 	}
 }

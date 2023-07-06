@@ -227,21 +227,22 @@ public class Main {
 		int event = r.nextInt(odds);
 		
 		if(event < defeats) {
-			System.out.print("defeats it.");
+			System.out.println("defeats it.");
+			voyager.getEXP(enemy.exp);
 		} else if (event < defeats + injure) {
-			System.out.print("defeats it, but is injured.");
+			System.out.println("defeats it, but is injured.");
+			voyager.getEXP(enemy.exp);
 		} else if (event < defeats + injure + calls) {
-			System.out.print("calls for help.");
+			System.out.println("calls for help.");
 		} else if (event < defeats + injure + calls + runs) {
-			System.out.print("runs away.");
+			System.out.println("runs away.");
 		} else {
-			System.out.print("dies.");
+			System.out.println("dies.");
 			voyagersInRealm[currentRealm].add(voyager);
 			party.remove(voyager);
 			//TODO:create a method for death
 		}
 		//TODO: add in healing mechanics & injured state
-		System.out.println();
 	}
 	
 	//old method, delete later
@@ -277,25 +278,25 @@ public class Main {
 		int mentor = 0;
 		int argument = 5;
 		int prank = 3;
-		int supplies = 2*(relation^(1/3)) + 7; //3-7-11
+		int supplies = (int) (2*Math.pow(relation, 1/3) + 7); //3-7-11
 		int rescue = relation/3 + 5; //2-5-8
-		int steal = 2^((relation-3)/3) + 1; //21-3-1
+		int steal = (int) (Math.pow(2, (relation-3)/3) + 1); //21-3-1
 		int gossip = 5;
 		int fight = 5;
 		
 		if (relation > 0) {
 			gift = (int) (15*Math.sin(relation/4)+5); //5-20-14
-			stories = -2*(relation^(2/3))+20; //20-10
-			mentor = (relation^2)/10; //0-10
-			prank = (int) (-2*Math.cos(relation/2)+5); //3-7-4
-			gossip = (relation^2)/10 + 5; //5-15
+			stories = (int) (-2*(Math.pow(relation, 2/3)) + 20); //20-10
+			mentor = (int) (Math.pow(relation, 2) / 10); //0-10
+			prank = (int) (-2*Math.cos(relation/2) + 5); //3-7-4
+			gossip = (int) (Math.pow(relation,2)/10 + 5); //5-15
 		} else if (relation < 0) {
-			gift = (int) (-1*Math.sqrt(-2*relation)+5); //0-5
-			stories = -4*(relation^(2/3))+20; //1-20
-			argument = (relation^2)/7 + 5; //20-5
+			gift = (int) (-1*Math.sqrt(-2*relation) + 5); //0-5
+			stories = (int) (-4*Math.pow(relation, 2/3) + 20); //1-20
+			argument = (int) (Math.pow(relation, 2) / 7 + 5); //20-5
 			prank = (int) (-5*Math.cos(relation/2)+10); //8-15-5
 			gossip = relation/3 + 5; //2-5
-			fight = (relation^2)/5 + 5; //25-5
+			fight = (int) (Math.pow(relation, 2) / 5 + 5); //25-5
 		}
 		
 		int total = gift + stories + train + mentor + argument + prank + supplies + rescue + steal + gossip + fight;

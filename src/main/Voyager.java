@@ -26,4 +26,23 @@ public class Voyager extends Entity {
 		}
 	}
 	
+	//methods
+	public void getEXP(int exp) {
+		super.exp += exp;
+		System.out.println(super.name + " gained " + exp + " exp."); //debug
+		
+		int levelUp = 0;
+		while (super.exp >= level*level && super.level < 10) {
+			super.exp -= level*level;
+			super.level++;
+			levelUp++;
+		}
+		
+		if (levelUp == 1) {
+			System.out.println(super.name + " leveled up!");
+		} else if (levelUp > 1) {
+			System.out.println(super.name + " leveled up " + levelUp + " times!");
+		}
+	}
+	
 }
