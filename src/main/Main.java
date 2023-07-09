@@ -8,6 +8,7 @@ public class Main {
 	static Scanner in = new Scanner(System.in);
 	public static ArrayList<Voyager> voyagers = new ArrayList<>();
 	public static ArrayList<Voyager> party = new ArrayList<>();
+	private static ArrayList<Voyager> dead = new ArrayList<>();
 	public static ArrayList<Voyager> voyagersInRealm[] = new ArrayList[24];
 	public static int currentRealm = 0;
 	public static ArrayList<Enemy> enemies = new ArrayList<>();
@@ -28,7 +29,12 @@ public class Main {
 		getVoyagers();		
 		sortVoyagers();
 		generateEnemies();
-		nextRealm();
+		
+		for (int i = 0; i < 24; i++) {
+			nextRealm();
+			currentRealm++;
+			System.out.println();
+		}
 	}
 	
 	
@@ -159,7 +165,8 @@ public class Main {
 			System.out.println(list(voyagersInRealm[currentRealm]) + " " + are + " in this realm.");
 		}
 		
-		recruit();
+		if (party.size() == 0)//TODO: TEMP CHANGE/////////////////////////////////////////////////////////////////
+			recruit();
 		action();
 		
 	}
@@ -183,8 +190,13 @@ public class Main {
 				event = r.nextInt(variable);
 				
 				if (event < 1) { findItem(voyager); } //0
-				else if (event < 3) { encounter(voyager); } //1,2
-				else { interact(voyager); } //3,4
+				else if (event < 3) { //1,2
+					Enemy enemy = enemies.get(r.nextInt(enemies.size()-1));
+					new Encounter(voyager, enemy, party);
+				} else { 
+					new Interaction(voyager, party); } //3,4
+				
+				checkForDeaths();
 			}
 		}
 	}
@@ -195,78 +207,10 @@ public class Main {
 		voyager.inventory.add(item);
 	}
 
-	public static void encounter(Voyager voyager) {
-		Enemy enemy = enemies.get(r.nextInt(enemies.size()-1));
-		System.out.print(voyager.name + " encounters a " + enemy.name + " and ");
-		
-		int defeats = 1;
-		int injure = 1;
-		int calls = 1;
-		int runs = 1;
-		int dies = 1;
-		
-		int levelDif = voyager.level - enemy.level;
-		if (levelDif > 0) {
-			defeats = 20*levelDif;
-			injure += 10/levelDif;
-			calls += 4/levelDif;
-			runs += 2/levelDif;
-		} else if (levelDif == 0) {
-			defeats = 15;
-			injure = 10;
-			calls = 4;
-			runs = 4;
-		} else {
-			injure += 20/-levelDif;
-			calls = 10*-levelDif;
-			runs = 15*-levelDif;
-			dies = 10*-levelDif;
-		}
-		
-		int odds = defeats + injure + calls + runs + dies;
-		int event = r.nextInt(odds);
-		
-		if(event < defeats) {
-			System.out.println("defeats it.");
-			voyager.getEXP(enemy.exp);
-		} else if (event < defeats + injure) {
-			System.out.println("defeats it, but is injured.");
-			voyager.getEXP(enemy.exp);
-		} else if (event < defeats + injure + calls) {
-			System.out.println("calls for help.");
-		} else if (event < defeats + injure + calls + runs) {
-			System.out.println("runs away.");
-		} else {
-			System.out.println("dies.");
-			voyagersInRealm[currentRealm].add(voyager);
-			party.remove(voyager);
-			//TODO:create a method for death
-		}
-		//TODO: add in healing mechanics & injured state
-	}
 	
-	//old method, delete later
-	public static void interactOLD(Voyager voyager) {
-		//assigns the random number range based on the party size
-		int variable = 6;
-		if (party.size() < 3)
-			variable = 3;
-		else if (party.size() < 4)
-			variable = 5;
-		
-		
-		int rr = r.nextInt(variable);
-		
-		if(rr < 3) {
-			//interact2(getUniqueVoyagers(2, voyager));
-		} else if (rr < 5) {
-			System.out.println("INTERACT 3");
-			//interact3(getUniqueVoyagers(3, voyager));
-		} else {
-			System.out.println("INTERACT 4");
-			//interact4(getUniqueVoyagers(4, voyager));
-		}
-	}
+	
+	
+	
 	
 	public static void interact(Voyager A) {
 		Voyager B = getUniqueVoyager(A);
@@ -336,6 +280,11 @@ public class Main {
 		return B;
 	}
 	
+	
+	
+	
+	
+	
 	//gets the specified number of voyagers without repeats
 	public static ArrayList<Voyager> getUniqueVoyagers(int total) {
 		ArrayList<Voyager> output = new ArrayList<>();
@@ -352,6 +301,29 @@ public class Main {
 		return output;
 	}
 	
+	
+	public static void reset(Voyager voyager) {
+		voyagersInRealm[currentRealm].add(voyager);
+		party.remove(voyager);
+		voyager.reset();
+		
+		//halves everyone's relation to the reset voyager
+		for (Voyager v : voyagers)
+			v.relations[voyager.id] /= 2;
+	}
+	
+	public static void checkForDeaths() {
+		for (Voyager v : party) {
+			if (v.isDead())
+				dead.add(v);
+		}
+		
+		for (Voyager v : dead) {
+			reset(v);
+		}
+		
+		dead.clear();
+	}
 	
 	
 	//prints out everything in the array in a nice list that cures my OCD
