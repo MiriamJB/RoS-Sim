@@ -95,8 +95,9 @@ public class Voyager extends Entity {
 		exp = 0;
 		
 		//set all relationship stats to 0
-		for (int r : relations)
-			relations[r] = 0;
+		for (int rel : relations) {
+			rel = 0;
+		}
 	}
 	
 }

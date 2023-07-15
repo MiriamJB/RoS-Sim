@@ -165,25 +165,62 @@ public class Interaction {
 	
 	private static void fight() {
 		System.out.println(A.name + " and "  + B.name + " get into a fight.");
-		int levelDif = A.level - B.level;
-		Boolean iA, iB, kA, kB, nA, nB;
 		
-		int injureA = (int) (Math.pow(-levelDif + 10, 3)/120 + 2); //1-60
-		int injureB = (int) (Math.pow(levelDif + 10, 3)/120 + 2);
-		int killA = (int) (Math.pow(-levelDif + 10, 2)/10); //0-36
-		int killB = (int) (Math.pow(levelDif + 10, 2)/10);
-		int nothingA = 2*(B.relations[A.id]) + 40;
-		int nothingB = 2*(B.relations[A.id]) + 40;//TODO: figure how to incorporate levelDif
+		int levelDif = A.level - B.level + 10; //1-20 (1-9 = B is stronger, 10 = same, 11-20 = A is stronger)
+		Boolean iA = false, iB = false, kA = false, kB = false;
 		
-		int totalA = injureA + killA + nothingA;
-		int totalB = injureB + killB + nothingB;
+		int totalA = (int) (Math.pow(B.relations[A.id] - 10, 2)/(5*Math.pow((levelDif/10+9.1)-11, 2)));
+		int totalB = (int) (Math.pow(A.relations[B.id] - 10, 2)/(5*Math.pow((levelDif/10-9.1)+11, 2)));
+		int killA = totalA/3;
+		int killB = totalB/3;
+		int injureA = totalA - killA;
+		int injureB = totalB - killB;
+		int nothingA = 20;
+		int nothingB = 20;
+		totalA += nothingA;
+		totalB += nothingB;
+		
 		int eventA = r.nextInt(totalA);
 		int eventB = r.nextInt(totalB);
 		
-		//TODO: add fight repercussions mechanics
-		
 		A.changeRelation(B, -2);
 		B.changeRelation(A, -2);
+		
+		//calculate if either person in the fight got injured/killed
+		if (eventA < injureA) { iA = true; }
+		else if (eventA < injureA + killA) { kA = true; }
+		
+		if (eventB < injureB) { iB = true; }
+		else if (eventB < injureB + killB) { kB = true; }
+		
+		//output injured
+		if (iA || iB) {
+			ArrayList<Voyager> injure = new ArrayList<>();
+			if (iA) { injure.add(A); }
+			if (iB) { injure.add(B); }
+			
+			String was = " was";
+			if (injure.size() > 1) { was = " were"; }
+			
+			System.out.println(list(injure) + was + " injured.");
+			
+			for (Voyager v : injure) { v.setInjured(); }
+		}
+		
+		//output killed
+		if (kA || kB) {
+			ArrayList<Voyager> kill = new ArrayList<>();
+			if (kA) { kill.add(A); }
+			if (kB) { kill.add(B); }
+			
+			String s = "s";
+			if (kill.size() > 1) { s = ""; }
+			
+			System.out.println(list(kill) + " die" + s + ".");
+			
+			for (Voyager v : kill) { v.status = Voyager.Status.DEAD; }
+		}
+		
 	}
 	
 	//gets a voyager that is not the one in the parameter
@@ -193,6 +230,27 @@ public class Interaction {
 		party2.remove(A);
 		Voyager B = party2.get(r.nextInt(party2.size()));
 		return B;
+	}
+	
+	//prints out everything in the array in a nice list that cures my OCD
+	public static String list(ArrayList<? extends Thing> list) {
+		//return empty if the list is empty
+		if (list.size() <= 0)
+			return "";
+		
+		//get first value
+		String output = list.get(0).name;
+		
+		//get next values
+		if (list.size() > 1) {
+			for (int i = 1; i < list.size()-1; i++)
+				output += ", " + list.get(i).name;
+			if (list.size() > 2)
+				output += ",";
+			output += " and " + list.get(list.size()-1).name;
+		}
+		
+		return output;
 	}
 
 }

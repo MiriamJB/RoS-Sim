@@ -167,8 +167,8 @@ public class Encounter {
 		
 		if(event < defeats) {
 			System.out.println("Together, they defeat the " + enemy.name + ".");
-			voyager.getEXP(enemy.exp/2);
-			rescue.getEXP(enemy.exp/2);
+			voyager.getEXP((int) Math.ceil(enemy.exp/2));
+			rescue.getEXP((int) Math.ceil(enemy.exp/2));
 			voyager.changeRelation(rescue, 2);
 		} else if (event < defeats + injure + runs) {
 			System.out.println("However, they both run away.");
