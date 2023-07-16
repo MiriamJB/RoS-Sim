@@ -10,6 +10,7 @@ public class Interaction {
 	private static Random r;
 	private static int relation;
 	private static String[] gifts = {"flower crown", "hug", "handmade gift"};
+	static String[] items = {"heartbeet root", "manana", "set of armor", "weapon"};
 	
 	private static int gift;
 	private static int stories;
@@ -114,12 +115,15 @@ public class Interaction {
 		System.out.println(A.name + " and " + B.name + " train together.");
 		A.changeRelation(B, 1);
 		B.changeRelation(A, 1);
+		A.getEXP(A.level+B.level);
+		B.getEXP(A.level+ B.level);
 	}
 	
 	private static void mentor() {
 		System.out.println(A.name + " mentors " + B.name + ".");
 		A.changeRelation(B, 2);
 		B.changeRelation(A, 3);
+		B.getEXP(B.level*B.level);
 	}
 	
 	private static void argument() {
@@ -137,16 +141,32 @@ public class Interaction {
 		System.out.println(A.name + " and "  + B.name + " look for supplies.");	
 		A.changeRelation(B, 1);
 		B.changeRelation(A, 1);
+		
+		String item = items[r.nextInt(items.length)];
+		System.out.println(A.name + " finds a " + item + ".");
+		A.inventory.add(item);
+		
+		item = items[r.nextInt(items.length)];
+		System.out.println(B.name + " finds a " + item + ".");
+		B.inventory.add(item);
 	}
 	
 	private static void rescue() {
 		System.out.println(B.name + " rushes into battle without thinking, and "  + A.name + " has to come to the rescue.");
 		A.changeRelation(B, -1);
 		B.changeRelation(A, 1);
+		A.getEXP(B.getLevel());
 	}
 	
 	private static void steal() {
-		System.out.println(A.name + " steals an item from " + B.name + ".");
+		if (B.inventory.isEmpty()) {
+			System.out.println(A.name + " tries to steal an item from " + B.name + ", but is unsuccessful.");
+		} else {
+			String item = B.inventory.get(r.nextInt(B.inventory.size())); 
+			System.out.println(A.name + " steals a " + item + " from " + B.name + ".");
+			A.inventory.add(item);
+			B.inventory.remove(item);
+		}
 		A.changeRelation(B, -1);
 		B.changeRelation(A, -2);
 	}
@@ -166,7 +186,7 @@ public class Interaction {
 	private static void fight() {
 		System.out.println(A.name + " and "  + B.name + " get into a fight.");
 		
-		int levelDif = A.level - B.level + 10; //1-20 (1-9 = B is stronger, 10 = same, 11-20 = A is stronger)
+		int levelDif = A.getLevel() - B.getLevel() + 10; //1-20 (1-9 = B is stronger, 10 = same, 11-20 = A is stronger)
 		Boolean iA = false, iB = false, kA = false, kB = false;
 		
 		int totalA = (int) (Math.pow(B.relations[A.id] - 10, 2)/(5*Math.pow((levelDif/10+9.1)-11, 2)));
@@ -196,8 +216,14 @@ public class Interaction {
 		//output injured
 		if (iA || iB) {
 			ArrayList<Voyager> injure = new ArrayList<>();
-			if (iA) { injure.add(A); }
-			if (iB) { injure.add(B); }
+			if (iA) { 
+				injure.add(A);
+				B.getEXP(A.getLevel());
+			}
+			if (iB) { 
+				injure.add(B);
+				A.getEXP(B.getLevel());
+			}
 			
 			String was = " was";
 			if (injure.size() > 1) { was = " were"; }
@@ -210,8 +236,14 @@ public class Interaction {
 		//output killed
 		if (kA || kB) {
 			ArrayList<Voyager> kill = new ArrayList<>();
-			if (kA) { kill.add(A); }
-			if (kB) { kill.add(B); }
+			if (kA) { 
+				kill.add(A);
+				B.getEXP(A.getLevel()*2);
+			}
+			if (kB) { 
+				kill.add(B);
+				A.getEXP(B.getLevel()*2);	
+			}
 			
 			String s = "s";
 			if (kill.size() > 1) { s = ""; }

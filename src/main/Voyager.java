@@ -76,6 +76,17 @@ public class Voyager extends Entity {
 		//TODO: add mechanics for becoming awakened
 	}
 	
+	public int getLevel() {
+		int lv = level;
+		
+		if (inventory.contains("set of armor"))
+			lv++;
+		if (inventory.contains("weapon"))
+			lv++;
+		
+		return lv;
+	}
+	
 	public void changeRelation(Voyager voyager, int change) {
 		relations[voyager.id] += change;
 		

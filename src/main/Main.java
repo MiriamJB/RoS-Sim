@@ -9,8 +9,9 @@ public class Main {
 	public static ArrayList<Voyager> voyagers = new ArrayList<>();
 	public static ArrayList<Voyager> party = new ArrayList<>();
 	private static ArrayList<Voyager> dead = new ArrayList<>();
-	public static ArrayList<Voyager> voyagersInRealm[] = new ArrayList[24];
-	public static int currentRealm = 0;
+	private static ArrayList<Voyager> hub = new ArrayList<>();
+	public static ArrayList<Voyager> voyagersInRealm[] = new ArrayList[25];
+	public static int currentRealm = 1;
 	public static ArrayList<Enemy> enemies = new ArrayList<>();
 	static String[] items = {"heartbeet root", "manana", "set of armor", "weapon"};
 	public static Random r = new Random();
@@ -18,7 +19,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		//Initialize voyagersInRealm array lists
-		for (int i = 0; i < 24; i++) {
+		for (int i = 0; i < 25; i++) {
 	        voyagersInRealm[i] = new ArrayList<Voyager>();
 	    }
 		
@@ -30,14 +31,19 @@ public class Main {
 		sortVoyagers();
 		generateEnemies();
 		
-		for (int i = 0; i < 24; i++) {
+		for (int i = 1; i < 25; i++) {
 			nextRealm();
 			currentRealm++;
 			System.out.println();
+			in.nextLine();
+			hubRealm();
+			System.out.println();
+			in.nextLine();
+
 		}
 	}
-	
-	
+
+
 	public static void getVoyagers() {
 		String input = "default input";
 		int id = 1;
@@ -101,17 +107,23 @@ public class Main {
 		ArrayList<Voyager> unsortedVoyagers = new ArrayList<>();
 		unsortedVoyagers.addAll(voyagers);
 		
+		//add one to the hub realm
+		voyager = r.nextInt(unsortedVoyagers.size());
+		voyagersInRealm[realm].add(unsortedVoyagers.get(voyager));
+		unsortedVoyagers.remove(voyager);
+		realm = 1;
+		
 		while (!unsortedVoyagers.isEmpty()) {
 			voyager = r.nextInt(unsortedVoyagers.size());
 			voyagersInRealm[realm].add(unsortedVoyagers.get(voyager));
-			realm = r.nextInt(23);
 			unsortedVoyagers.remove(voyager);
+			realm = r.nextInt(23)+1;
 		}
 		
 		//debug, shows which voyagers are in each realm
 //		int i = 0;
 //		for (ArrayList<Voyager> voyagers : voyagersInRealm) {
-//			System.out.print("Realm " + (i+1) + ": ");
+//			System.out.print("Realm " + (i) + ": ");
 //			for (Voyager person : voyagers) {
 //				System.out.print(person.name + " ");
 //			}
@@ -146,8 +158,8 @@ public class Main {
 	
 	
 	public static void nextRealm() {
-		System.out.println("REALM " + (currentRealm+1) + "\n"
-				+ "--------------");
+		System.out.println("REALM " + currentRealm + "\n"
+				+ "----------------------------");
 		
 		//lists the party that entered the realm
 		if (party.size() > 0) {
@@ -165,8 +177,11 @@ public class Main {
 			System.out.println(list(voyagersInRealm[currentRealm]) + " " + are + " in this realm.");
 		}
 		
+		System.out.println();
+		
 		if (party.size() == 0)//TODO: TEMP CHANGE/////////////////////////////////////////////////////////////////
 			recruit();
+		
 		action();
 		
 	}
@@ -197,6 +212,7 @@ public class Main {
 					new Interaction(voyager, party); } //3,4
 				
 				checkForDeaths();
+				System.out.println();
 			}
 		}
 	}
@@ -208,88 +224,50 @@ public class Main {
 	}
 
 	
-	
-	
-	
-	
-	public static void interact(Voyager A) {
-		Voyager B = getUniqueVoyager(A);
-		int relation = A.relations[B.id];
-
-		int gift = 5;
-		int stories = 20;
-		int train = relation/2 + 10; //10-15
-		int mentor = 0;
-		int argument = 5;
-		int prank = 3;
-		int supplies = (int) (2*Math.pow(relation, 1/3) + 7); //3-7-11
-		int rescue = relation/3 + 5; //2-5-8
-		int steal = (int) (Math.pow(2, (relation-3)/3) + 1); //21-3-1
-		int gossip = 5;
-		int fight = 5;
+	private static void hubRealm() {
+		System.out.println("HUB REALM \n"
+				+ "----------------------------");
 		
-		if (relation > 0) {
-			gift = (int) (15*Math.sin(relation/4)+5); //5-20-14
-			stories = (int) (-2*(Math.pow(relation, 2/3)) + 20); //20-10
-			mentor = (int) (Math.pow(relation, 2) / 10); //0-10
-			prank = (int) (-2*Math.cos(relation/2) + 5); //3-7-4
-			gossip = (int) (Math.pow(relation,2)/10 + 5); //5-15
-		} else if (relation < 0) {
-			gift = (int) (-1*Math.sqrt(-2*relation) + 5); //0-5
-			stories = (int) (-4*Math.pow(relation, 2/3) + 20); //1-20
-			argument = (int) (Math.pow(relation, 2) / 7 + 5); //20-5
-			prank = (int) (-5*Math.cos(relation/2)+10); //8-15-5
-			gossip = relation/3 + 5; //2-5
-			fight = (int) (Math.pow(relation, 2) / 5 + 5); //25-5
+		//lists the party that entered the realm
+		if (party.size() > 0) {
+			String s = ""; //to change "enter" to "enters" if needs be
+			if (party.size() == 1)
+				s = "s";
+			System.out.println(list(party) + " enter" + s + " the hub realm.");
 		}
 		
-		int total = gift + stories + train + mentor + argument + prank + supplies + rescue + steal + gossip + fight;
-		int event = r.nextInt(total);
+		//reveals who is in the hub realm
+		if (currentRealm == 2) {
+			System.out.println(voyagersInRealm[0].get(0).name + " is in the hub realm.");
+			hub.add(voyagersInRealm[0].get(0));
+			voyagersInRealm[0].clear();
+		}
 		
-		if (event < gift) {
-			System.out.println(A.name + " gives " + B.name + " a gift.");
-		} else if (event < gift + stories) {
-			System.out.println(A.name + " and " + B.name + " share stories.");
-		} else if (event < gift + stories + train) {
-			System.out.println(A.name + " and " + B.name + " train together.");
-		} else if (event < gift + stories + train + mentor) {
-			System.out.println(A.name + " mentors " + B.name + ".");
-		} else if (event < gift + stories + train + mentor + argument) {
-			System.out.println(A.name + " and " + B.name + " get into an argument.");
-		} else if (event < gift + stories + train + mentor + argument + prank) {
-			System.out.println(A.name + " pranks "  + B.name + ".");
-		} else if (event < gift + stories + train + mentor + argument + prank + supplies) {
-			System.out.println(A.name + " and "  + B.name + " look for supplies.");
-		} else if (event < gift + stories + train + mentor + argument + prank + supplies + rescue) {
-			System.out.println(B.name + " rushes into battle without thinking, and "  + A.name + " has to come to the rescue.");
-		} else if (event < gift + stories + train + mentor + argument + prank + supplies + rescue + steal) {
-			System.out.println(A.name + " steals an item from " + B.name + ".");
-		} else if (event < gift + stories + train + mentor + argument + prank + supplies + rescue + steal + gossip) {
-			System.out.println(A.name + " and "  + B.name + " share gossip about the others.");
+		hub.addAll(party);
+		party.clear();
+		
+		//TODO: hub realm interactions
+		
+		//form a new party restricted by the number of swords & people available
+		if (hub.size() < currentRealm) {
+			party.addAll(hub);
+			hub.clear();
 		} else {
-			System.out.println(A.name + " and "  + B.name + " get into a fight.");
+			ArrayList<Voyager> temp = new ArrayList<>();
+			temp.addAll(getUniqueVoyagers(currentRealm));
+			party.addAll(temp);
+			hub.removeAll(temp);
 		}
+		
+		
 	}
-	
-	//gets a voyager that is not the one in the parameter
-	public static Voyager getUniqueVoyager(Voyager A) {
-		ArrayList<Voyager> party2 = new ArrayList<>();
-		party2.addAll(party);
-		party2.remove(A);
-		Voyager B = party2.get(r.nextInt(party2.size()));
-		return B;
-	}
-	
-	
-	
-	
 	
 	
 	//gets the specified number of voyagers without repeats
 	public static ArrayList<Voyager> getUniqueVoyagers(int total) {
 		ArrayList<Voyager> output = new ArrayList<>();
 		ArrayList<Voyager> party2 = new ArrayList<>();
-		party2.addAll(party);
+		party2.addAll(hub);
 		
 		Voyager B;
 		while (output.size() < total) {

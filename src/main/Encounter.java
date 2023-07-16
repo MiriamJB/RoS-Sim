@@ -31,7 +31,7 @@ public class Encounter {
 		runs = 1;
 		dies = 1;
 		
-		int levelDif = voyager.level - enemy.level;
+		int levelDif = voyager.getLevel() - enemy.level;
 		if (levelDif > 0) {
 			defeats = 20*levelDif;
 			injure += 10/levelDif;
@@ -150,7 +150,7 @@ public class Encounter {
 		runs = 1;
 		dies = 1;
 		
-		int levelDif = voyager.level + rescue.level - enemy.level;
+		int levelDif = voyager.getLevel() + rescue.getLevel() - enemy.level;
 		if (levelDif > 0) {
 			defeats = 20*levelDif;
 			runs += 2/levelDif;
