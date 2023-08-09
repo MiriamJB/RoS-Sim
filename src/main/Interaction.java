@@ -3,35 +3,32 @@ package main;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Interaction {
-	private static Voyager A;
-	private static Voyager B;
+public abstract class Interaction {
+	protected static Voyager A;
+	protected static Voyager B;
 	static ArrayList<Voyager> party;
-	private static Random r;
-	private static int relation;
-	private static String[] gifts = {"flower crown", "hug", "handmade gift"};
+	protected static Random r;
+	protected static int relation;
+	static String[] gifts = {"flower crown", "hug", "handmade gift"};
 	static String[] items = {"heartbeet root", "manana", "set of armor", "weapon"};
 	
-	private static int gift;
-	private static int stories;
-	private static int train;
-	private static int mentor;
-	private static int argument;
-	private static int prank;
-	private static int supplies;
-	private static int rescue;
-	private static int steal;
-	private static int gossip;
-	private static int fight;
+	protected static int gift;
+	protected static int stories;
+	protected static int train;
+	protected static int mentor;
+	protected static int argument;
+	protected static int prank;
+	protected static int supplies;
+	protected static int rescue;
+	protected static int steal;
+	protected static int gossip;
+	protected static int fight;
+	protected static int total;
+	protected static int event;
 	
-	//constructor
-	public Interaction(Voyager v, ArrayList<Voyager> p) {
-		r = new Random();
-		party = p;
-		A = v;
-		B = getUniqueVoyager(A);
-		relation = A.relations[B.id];
-		
+	
+	//methods
+	protected static void chooseInteraction() {
 		gift = 5;
 		stories = 20;
 		train = relation/2 + 10; //10-15
@@ -59,36 +56,19 @@ public class Interaction {
 			fight = (int) (Math.pow(relation, 2) / 5 + 5); //25-5
 		}
 		
-		int total = gift + stories + train + mentor + argument + prank + supplies + rescue + steal + gossip + fight;
-		int event = r.nextInt(total);
+		//won't gossip if the party size is too small
+		if (party.size() < 3)
+			gossip = 0;
 		
-		if (event < gift) {
-			gift();
-		} else if (event < gift + stories) {
-			stories();
-		} else if (event < gift + stories + train) {
-			train();
-		} else if (event < gift + stories + train + mentor) {
-			mentor();
-		} else if (event < gift + stories + train + mentor + argument) {
-			argument();
-		} else if (event < gift + stories + train + mentor + argument + prank) {
-			prank();
-		} else if (event < gift + stories + train + mentor + argument + prank + supplies) {
-			supplies();
-		} else if (event < gift + stories + train + mentor + argument + prank + supplies + rescue) {
-			rescue();
-		} else if (event < gift + stories + train + mentor + argument + prank + supplies + rescue + steal) {
-			steal();
-		} else if (event < gift + stories + train + mentor + argument + prank + supplies + rescue + steal + gossip) {
-			gossip();
-		} else {
-			fight();
-		}
+		//won't mentor if A isn't stronger than B
+		if (A.level <= B.level)
+			mentor = 0;
+		
+		total = gift + stories + train + mentor + argument + prank + supplies + rescue + steal + gossip + fight;
+		event = r.nextInt(total);
 	}
 	
-	//methods
-	private static void gift() {
+	protected static void gift() {
 		System.out.print(A.name + " gives " + B.name + " a ");
 		
 		String gift = "";		
@@ -105,60 +85,45 @@ public class Interaction {
 		B.changeRelation(A, 2);
 	}
 	
-	private static void stories() {
+	protected static void stories() {
 		System.out.println(A.name + " and " + B.name + " share stories.");
 		A.changeRelation(B, 1);
 		B.changeRelation(A, 1);
 	}
 	
-	private static void train() {
+	protected static void train() {
 		System.out.println(A.name + " and " + B.name + " train together.");
 		A.changeRelation(B, 1);
 		B.changeRelation(A, 1);
-		A.getEXP(A.level+B.level);
-		B.getEXP(A.level+ B.level);
+		
+		int expGained = A.level+B.level;
+		A.getEXP(expGained);
+		B.getEXP(expGained);
 	}
 	
-	private static void mentor() {
+	protected static void mentor() {
 		System.out.println(A.name + " mentors " + B.name + ".");
 		A.changeRelation(B, 2);
 		B.changeRelation(A, 3);
 		B.getEXP(B.level*B.level);
 	}
 	
-	private static void argument() {
+	protected static void argument() {
 		System.out.println(A.name + " and " + B.name + " get into an argument.");
 		A.changeRelation(B, -1);
 		B.changeRelation(A, -1);
 	}
 	
-	private static void prank() {
+	protected static void prank() {
 		System.out.println(A.name + " pranks "  + B.name + ".");
 		B.changeRelation(A, -1);
 	}
 	
-	private static void supplies() {
-		System.out.println(A.name + " and "  + B.name + " look for supplies.");	
-		A.changeRelation(B, 1);
-		B.changeRelation(A, 1);
-		
-		String item = items[r.nextInt(items.length)];
-		System.out.println(A.name + " finds a " + item + ".");
-		A.inventory.add(item);
-		
-		item = items[r.nextInt(items.length)];
-		System.out.println(B.name + " finds a " + item + ".");
-		B.inventory.add(item);
-	}
+	protected abstract void supplies();
 	
-	private static void rescue() {
-		System.out.println(B.name + " rushes into battle without thinking, and "  + A.name + " has to come to the rescue.");
-		A.changeRelation(B, -1);
-		B.changeRelation(A, 1);
-		A.getEXP(B.getLevel());
-	}
+	protected abstract void rescue();
 	
-	private static void steal() {
+	protected static void steal() {
 		if (B.inventory.isEmpty()) {
 			System.out.println(A.name + " tries to steal an item from " + B.name + ", but is unsuccessful.");
 		} else {
@@ -171,7 +136,7 @@ public class Interaction {
 		B.changeRelation(A, -2);
 	}
 	
-	private static void gossip() {
+	protected static void gossip() {
 		System.out.println(A.name + " and "  + B.name + " share gossip about the others.");
 		
 		for (int i = 0; i < party.size(); i++) {
@@ -183,7 +148,7 @@ public class Interaction {
 		}
 	}
 	
-	private static void fight() {
+	protected static void fight(ArrayList<Voyager> party) {
 		System.out.println(A.name + " and "  + B.name + " get into a fight.");
 		
 		int levelDif = A.getLevel() - B.getLevel() + 10; //1-20 (1-9 = B is stronger, 10 = same, 11-20 = A is stronger)
@@ -206,6 +171,9 @@ public class Interaction {
 		A.changeRelation(B, -2);
 		B.changeRelation(A, -2);
 		
+		int expA = 0;
+		int expB = 0;
+		
 		//calculate if either person in the fight got injured/killed
 		if (eventA < injureA) { iA = true; }
 		else if (eventA < injureA + killA) { kA = true; }
@@ -213,36 +181,46 @@ public class Interaction {
 		if (eventB < injureB) { iB = true; }
 		else if (eventB < injureB + killB) { kB = true; }
 		
-		//output injured
+		//output if either got injured
 		if (iA || iB) {
 			ArrayList<Voyager> injure = new ArrayList<>();
 			if (iA) { 
 				injure.add(A);
-				B.getEXP(A.getLevel());
+				expB = A.getLevel();
 			}
 			if (iB) { 
 				injure.add(B);
-				A.getEXP(B.getLevel());
+				expA = B.getLevel();
 			}
 			
-			String was = " was";
-			if (injure.size() > 1) { was = " were"; }
+			String is = " is";
+			if (injure.size() > 1) { is = " are"; }
 			
-			System.out.println(list(injure) + was + " injured.");
+			System.out.println(list(injure) + is + " injured in the fight.");
 			
 			for (Voyager v : injure) { v.setInjured(); }
 		}
 		
-		//output killed
+		//output if either got killed
+		ArrayList<Voyager> kill = new ArrayList<>();
 		if (kA || kB) {
-			ArrayList<Voyager> kill = new ArrayList<>();
 			if (kA) { 
 				kill.add(A);
-				B.getEXP(A.getLevel()*2);
+				expB = A.getLevel()*2;
+				for (Voyager v : party) {
+					v.changeRelation(B, -1);
+				}
+				B.kills++;
+				B.voyagerKills++;
 			}
 			if (kB) { 
 				kill.add(B);
-				A.getEXP(B.getLevel()*2);	
+				expA = B.getLevel()*2;
+				for (Voyager v : party) {
+					v.changeRelation(A, -1);
+				}
+				A.kills++;
+				A.voyagerKills++;
 			}
 			
 			String s = "s";
@@ -253,8 +231,14 @@ public class Interaction {
 			for (Voyager v : kill) { v.status = Voyager.Status.DEAD; }
 		}
 		
+		//award EXP as needed
+		if (!A.isDead() && expA != 0)
+			A.getEXP(expA);
+		if (!B.isDead() && expB != 0)
+			B.getEXP(expB);		
 	}
-	
+
+
 	//gets a voyager that is not the one in the parameter
 	public static Voyager getUniqueVoyager(Voyager A) {
 		ArrayList<Voyager> party2 = new ArrayList<>();

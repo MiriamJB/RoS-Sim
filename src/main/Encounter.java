@@ -69,16 +69,19 @@ public class Encounter {
 	private static void defeatEnemy() {
 		System.out.println("defeats it.");
 		voyager.getEXP(enemy.exp);
+		voyager.kills++;
 	}
 	
 	private static void injure() {
+		System.out.println("defeats it, but is injured.");
+		voyager.kills++;
 		if (!voyager.isInjured()) {
-			System.out.println("defeats it, but is injured.");
-			voyager.setInjured();
 			voyager.getEXP(enemy.exp);
+			voyager.setInjured();
 		} else {
 			//will die if already injured
-			death();
+			System.out.println(voyager.name + " dies from the injury.");
+			voyager.status = Voyager.Status.DEAD;
 		}
 	}
 	
@@ -146,7 +149,6 @@ public class Encounter {
 	
 	private static void encounterWithHelp(Voyager rescue) {
 		defeats = 1;
-		injure = 1;
 		runs = 1;
 		dies = 1;
 		
@@ -167,10 +169,12 @@ public class Encounter {
 		
 		if(event < defeats) {
 			System.out.println("Together, they defeat the " + enemy.name + ".");
-			voyager.getEXP((int) Math.ceil(enemy.exp/2));
-			rescue.getEXP((int) Math.ceil(enemy.exp/2));
+			voyager.getEXP((int) Math.ceil((double)enemy.exp/2));
+			rescue.getEXP((int) Math.ceil((double)enemy.exp/2));
 			voyager.changeRelation(rescue, 2);
-		} else if (event < defeats + injure + runs) {
+			voyager.kills++;
+			rescue.kills++;
+		} else if (event < defeats + runs) {
 			System.out.println("However, they both run away.");
 			voyager.changeRelation(rescue, 1);
 		} else {

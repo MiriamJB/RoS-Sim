@@ -1,15 +1,19 @@
 package main;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Random;
 import java.util.Scanner;
 
 public class Main {
 	static Scanner in = new Scanner(System.in);
 	public static ArrayList<Voyager> voyagers = new ArrayList<>();
+	public static ArrayList<Voyager> dead = new ArrayList<>();
 	public static ArrayList<Voyager> party = new ArrayList<>();
-	private static ArrayList<Voyager> dead = new ArrayList<>();
 	private static ArrayList<Voyager> hub = new ArrayList<>();
+	private static ArrayList<Voyager> tempHub = new ArrayList<>();
+	@SuppressWarnings("unchecked")
 	public static ArrayList<Voyager> voyagersInRealm[] = new ArrayList[25];
 	public static int currentRealm = 1;
 	public static ArrayList<Enemy> enemies = new ArrayList<>();
@@ -31,16 +35,24 @@ public class Main {
 		sortVoyagers();
 		generateEnemies();
 		
-		for (int i = 1; i < 25; i++) {
+		for (int i = 1; i < 24; i++) {
 			nextRealm();
 			currentRealm++;
-			System.out.println();
+			System.out.print("\nPress ENTER to continue...");
 			in.nextLine();
+			System.out.println("\n");
+			
 			hubRealm();
-			System.out.println();
+			System.out.print("\n\nPress ENTER to continue...");
 			in.nextLine();
-
+			System.out.println("\n");
 		}
+		
+		nextRealm();
+		currentRealm++;
+		System.out.println("\n\nCONGRATULATIONS! All 24 swords have been collected!");
+		//TODO: ending stats
+		printVoyagerStats();
 	}
 
 
@@ -53,7 +65,7 @@ public class Main {
 		while (input != "") {
 			System.out.print("Voyager " + id + ": ");
 			//input = in.nextLine();
-			input = "";////////////////////////////////////////////////////////////////////////////////////////////////TEMP CHANGE
+			input = "";////////////////////////////////////////////////////////////////////////////////////////////////TEMP CHANGE, automatic start
 			voyagerNames.add(input);
 			id++;	
 		}
@@ -159,7 +171,7 @@ public class Main {
 	
 	public static void nextRealm() {
 		System.out.println("REALM " + currentRealm + "\n"
-				+ "----------------------------");
+				+ "--------------------------------------------------------");
 		
 		//lists the party that entered the realm
 		if (party.size() > 0) {
@@ -179,19 +191,18 @@ public class Main {
 		
 		System.out.println();
 		
-		if (party.size() == 0)//TODO: TEMP CHANGE/////////////////////////////////////////////////////////////////
-			recruit();
-		
+		recruit();
 		action();
-		
+		bossFight();
 	}
-	
-	
+
+
 	public static void recruit() {
-		//TODO: add recruitment mechanic besides just lumping everyone together
+		//TODO: possibly add recruitment mechanic besides just lumping everyone together
 		party.addAll(voyagersInRealm[currentRealm]);
 		voyagersInRealm[currentRealm].clear();
 	}
+	
 	
 	public static void action() {
 		int event;
@@ -209,9 +220,9 @@ public class Main {
 					Enemy enemy = enemies.get(r.nextInt(enemies.size()-1));
 					new Encounter(voyager, enemy, party);
 				} else { 
-					new Interaction(voyager, party); } //3,4
+					new RealmInteraction(voyager, party); } //3,4
 				
-				checkForDeaths();
+				checkForDeaths(party);
 				System.out.println();
 			}
 		}
@@ -222,11 +233,30 @@ public class Main {
 		System.out.println(voyager.name + " finds a " + item + ".");
 		voyager.inventory.add(item);
 	}
+	
+	
+	//TODO: BOSS FIGHT!!!
+	private static void bossFight() {
+		if (party.size() < 3) {
+			String s = "";
+			if (party.size() == 1)
+				s = "s";
+			System.out.println(list(party) + " fight" + s + " the boss and obtain" + s + " the boss sword.");
+		} else {
+			System.out.println("Everyone fights the boss and obtains the boss sword.");
+		}
+		
+		for (Voyager v : party) {
+			v.getEXP(100/party.size());
+		}
+		
+		System.out.println();
+	}
 
 	
 	private static void hubRealm() {
 		System.out.println("HUB REALM \n"
-				+ "----------------------------");
+				+ "--------------------------------------------------------");
 		
 		//lists the party that entered the realm
 		if (party.size() > 0) {
@@ -246,28 +276,63 @@ public class Main {
 		hub.addAll(party);
 		party.clear();
 		
-		//TODO: hub realm interactions
+		//action cycle
+		//TODO: solo event option?
+		tempHub = new ArrayList<>(hub);
+		while (tempHub.size() > 1) {
+			System.out.println();
+			
+			ArrayList<Voyager> voyagers = getUniqueVoyagers(2, tempHub);
+			new HubInteraction(voyagers, hub);
+			
+			for (Voyager v : voyagers) {
+				tempHub.remove(v);
+			}
+		}
+		
+		//check to see if anyone died during the action phase
+		checkForDeaths(hub);
+		
+		//TODO: include more group actions
+		//bring back any voyagers that got reset in cleared realms
+		if (!voyagersInRealm[currentRealm-1].isEmpty()) {
+			Voyager lead = hub.get(r.nextInt(hub.size()));
+			
+			String leadsATeam = " leads a team";
+			if (hub.size() < 3)
+				leadsATeam = " goes";
+			
+			System.out.println("\n" + lead.name + leadsATeam + " into realm " + (currentRealm-1) + " and brings " + list(voyagersInRealm[currentRealm-1]) + " back to the hub realm.");
+			
+			for (Voyager v : voyagersInRealm[currentRealm-1]) {
+				lead.changeRelation(v, 1);
+				v.changeRelation(lead, 2);
+			}
+			
+			hub.addAll(voyagersInRealm[currentRealm-1]);
+			voyagersInRealm[currentRealm-1].clear();
+		}
 		
 		//form a new party restricted by the number of swords & people available
+		//TODO: choose voyagers based on strength
 		if (hub.size() < currentRealm) {
 			party.addAll(hub);
 			hub.clear();
 		} else {
 			ArrayList<Voyager> temp = new ArrayList<>();
-			temp.addAll(getUniqueVoyagers(currentRealm));
+			temp.addAll(getUniqueVoyagers(currentRealm, hub));
 			party.addAll(temp);
 			hub.removeAll(temp);
 		}
-		
 		
 	}
 	
 	
 	//gets the specified number of voyagers without repeats
-	public static ArrayList<Voyager> getUniqueVoyagers(int total) {
+	public static ArrayList<Voyager> getUniqueVoyagers(int total, ArrayList<Voyager> list) {
 		ArrayList<Voyager> output = new ArrayList<>();
 		ArrayList<Voyager> party2 = new ArrayList<>();
-		party2.addAll(hub);
+		party2.addAll(list);
 		
 		Voyager B;
 		while (output.size() < total) {
@@ -280,9 +345,25 @@ public class Main {
 	}
 	
 	
-	public static void reset(Voyager voyager) {
-		voyagersInRealm[currentRealm].add(voyager);
-		party.remove(voyager);
+	public static ArrayList<Voyager> splitArrayList(ArrayList<Voyager> list) {
+		ArrayList<Voyager> output = new ArrayList<>();
+		int limit = list.size()/2; //will take the lower half if the size is odd
+		
+		while (output.size() < limit) {
+			output.add(list.get(r.nextInt(list.size())));
+		}
+		
+		return output;
+	}
+	
+	
+	public static void reset(Voyager voyager, ArrayList<Voyager> group) {
+		if (group == party)
+			voyagersInRealm[currentRealm].add(voyager);
+		else
+			voyagersInRealm[currentRealm-1].add(voyager);
+			
+		group.remove(voyager);
 		voyager.reset();
 		
 		//halves everyone's relation to the reset voyager
@@ -290,17 +371,47 @@ public class Main {
 			v.relations[voyager.id] /= 2;
 	}
 	
-	public static void checkForDeaths() {
-		for (Voyager v : party) {
+	public static void checkForDeaths(ArrayList<Voyager> group) {
+		for (Voyager v : group)
 			if (v.isDead())
-				dead.add(v);
-		}
+				dead.add(v); //have to add to a separate ArrayList before removing
 		
-		for (Voyager v : dead) {
-			reset(v);
-		}
-		
+		for (Voyager v : dead)
+			reset(v, group);
+
 		dead.clear();
+	}
+	
+	
+	public static void printVoyagerStats() {
+		//ranking of all the voyagers by level and exp
+		System.out.println("\n\nPress ENTER to view voyager stats...");
+		in.nextLine();
+		Collections.sort(voyagers, new SortVoyagersByLevel());
+		System.out.println("      Name  Lv.  Exp.  Power\n"
+				+ "  --------------------------------------------");
+		for (Voyager v : voyagers)
+			System.out.printf("%10s  %2d   %3d   %s\n", v.name, v.level, v.exp, v.power);
+		
+		//display voyagers by kills/deaths
+		System.out.println("\n\nPress ENTER to view voyager rankings by kills/deaths...");
+		in.nextLine();
+		Collections.sort(voyagers, new SortVoyagersByKills());
+		System.out.println("      Name  Kills  Deaths  Voyager Kills\n"
+				+ "  ---------------------------------------");
+		for (Voyager v : voyagers)
+			System.out.printf("%10s   %2d     %d       %d\n", v.name, v.kills, v.deaths, v.voyagerKills);
+		
+		//display voyager(s) by overall relationships
+		System.out.println("\n\nPress ENTER to view voyager rankings by relations...");
+		in.nextLine();
+		Collections.sort(voyagers, new SortVoyagersByRelation());
+		System.out.println("      Name  Average   Highest   Lowest\n"
+						 + "            Relation  Relation  Relation\n"
+						 + "  ---------------------------------------");
+		for (Voyager v : voyagers)
+			System.out.printf("%10s %9f    %2d        %2d\n", v.name, v.getAverageRelation(), v.getHighestRelation(), v.getLowestRelation());
+		
 	}
 	
 	
@@ -323,5 +434,39 @@ public class Main {
 		}
 		
 		return output;
+	}
+	
+}
+
+class SortVoyagersByLevel implements Comparator<Voyager> {
+	@Override
+	public int compare(Voyager v1, Voyager v2) {
+		if (v2.level - v1.level != 0)
+			return v2.level - v1.level;
+		else
+			return v2.exp - v1.exp;
+	}
+}
+
+class SortVoyagersByRelation implements Comparator<Voyager> {
+	@Override
+	public int compare(Voyager v1, Voyager v2) {
+		double ar = v2.getAverageRelation() - v1.getAverageRelation();
+		if (ar < 0)
+			return -1;
+		else if (ar > 0)
+			return 1;
+		else
+			return v2.getHighestRelation() - v1.getHighestRelation();
+	}
+}
+
+class SortVoyagersByKills implements Comparator<Voyager> {
+	@Override
+	public int compare(Voyager v1, Voyager v2) {
+		if (v2.kills - v1.kills != 0)
+			return v2.kills - v1.kills;
+		else
+			return v1.deaths - v2.deaths;
 	}
 }
