@@ -5,11 +5,12 @@ import java.util.Random;
 
 public class RealmInteraction extends Interaction {
 
-	public RealmInteraction(Voyager v, ArrayList<Voyager> p) {
+	public RealmInteraction(Voyager[] v, ArrayList<Voyager> p) {
 		r = new Random();
 		party = p;
-		A = v;
-		B = getUniqueVoyager(A);
+		A = v[0];
+		B = v[1];
+		
 		relation = A.relations[B.id];
 		
 		chooseInteraction();
@@ -47,10 +48,12 @@ public class RealmInteraction extends Interaction {
 		String item = items[r.nextInt(items.length)];
 		System.out.println(A.name + " finds a " + item + ".");
 		A.inventory.add(item);
+		A.totalItems++;
 		
 		item = items[r.nextInt(items.length)];
 		System.out.println(B.name + " finds a " + item + ".");
 		B.inventory.add(item);
+		B.totalItems++;
 	}
 	
 	protected void rescue() {

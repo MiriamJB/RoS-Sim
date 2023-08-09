@@ -14,6 +14,10 @@ public class Voyager extends Entity {
 	public int kills;
 	public int voyagerKills;
 	public int deaths;
+	public int totalItems;
+	public int itemsUsed;
+	public int itemsGifted;
+	public int itemsStolen;
 	Random r = new Random();
 	
 	public String[] powers = {"pyrokinetic (fire)", "hydrokinetic (water)", "cryokinetic (ice)", 
@@ -40,6 +44,10 @@ public class Voyager extends Entity {
 		exp = 0;
 		kills = 0;
 		deaths = 0;
+		totalItems = 0;
+		itemsUsed = 0;
+		itemsGifted = 0;
+		itemsStolen = 0;
 		
 		//set all relationship stats to 0
 		relations = new int[totalVoyagers];
@@ -65,6 +73,10 @@ public class Voyager extends Entity {
 		if (inventory.contains("heartbeet root")) {
 			System.out.println(name + " eats a heartbeet root to recover.");
 			inventory.remove("heartbeet root");
+			itemsUsed++;
+		} else if (status == Status.INJURED) {
+			System.out.println(name + " dies from the injury.");
+			status = Status.DEAD;
 		} else {
 			status = Status.INJURED;
 		}

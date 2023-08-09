@@ -74,15 +74,9 @@ public class Encounter {
 	
 	private static void injure() {
 		System.out.println("defeats it, but is injured.");
+		voyager.getEXP(enemy.exp);
 		voyager.kills++;
-		if (!voyager.isInjured()) {
-			voyager.getEXP(enemy.exp);
-			voyager.setInjured();
-		} else {
-			//will die if already injured
-			System.out.println(voyager.name + " dies from the injury.");
-			voyager.status = Voyager.Status.DEAD;
-		}
+		voyager.setInjured();
 	}
 	
 	private static void callForHelp() {

@@ -78,6 +78,8 @@ public abstract class Interaction {
 			gift = A.inventory.get(r.nextInt(A.inventory.size()));
 			A.inventory.remove(gift);
 			B.inventory.add(gift);
+			B.totalItems++;
+			A.itemsGifted++;
 		}
 		
 		System.out.println(gift + ".");
@@ -131,6 +133,8 @@ public abstract class Interaction {
 			System.out.println(A.name + " steals a " + item + " from " + B.name + ".");
 			A.inventory.add(item);
 			B.inventory.remove(item);
+			A.itemsStolen++;
+			A.totalItems++;
 		}
 		A.changeRelation(B, -1);
 		B.changeRelation(A, -2);
@@ -238,16 +242,6 @@ public abstract class Interaction {
 			B.getEXP(expB);		
 	}
 
-
-	//gets a voyager that is not the one in the parameter
-	public static Voyager getUniqueVoyager(Voyager A) {
-		ArrayList<Voyager> party2 = new ArrayList<>();
-		party2.addAll(party);
-		party2.remove(A);
-		Voyager B = party2.get(r.nextInt(party2.size()));
-		return B;
-	}
-	
 	//prints out everything in the array in a nice list that cures my OCD
 	public static String list(ArrayList<? extends Thing> list) {
 		//return empty if the list is empty

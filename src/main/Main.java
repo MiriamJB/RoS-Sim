@@ -13,6 +13,7 @@ public class Main {
 	public static ArrayList<Voyager> party = new ArrayList<>();
 	private static ArrayList<Voyager> hub = new ArrayList<>();
 	private static ArrayList<Voyager> tempHub = new ArrayList<>();
+	private static ArrayList<Voyager> tempParty = new ArrayList<>();
 	@SuppressWarnings("unchecked")
 	public static ArrayList<Voyager> voyagersInRealm[] = new ArrayList[25];
 	public static int currentRealm = 1;
@@ -49,9 +50,10 @@ public class Main {
 		}
 		
 		nextRealm();
-		currentRealm++;
-		System.out.println("\n\nCONGRATULATIONS! All 24 swords have been collected!");
-		//TODO: ending stats
+		System.out.println("\n"
+			+ "  -------------------------------------------------------\n\n"
+			+ "    CONGRATULATIONS! All 24 swords have been collected!  \n\n"
+			+ "  -------------------------------------------------------");
 		printVoyagerStats();
 	}
 
@@ -62,14 +64,23 @@ public class Main {
 		ArrayList<String> voyagerNames = new ArrayList<>();
 		
 		//saves names in voyagerNames array list
-		while (input != "") {
-			System.out.print("Voyager " + id + ": ");
-			//input = in.nextLine();
-			input = "";////////////////////////////////////////////////////////////////////////////////////////////////TEMP CHANGE, automatic start
-			voyagerNames.add(input);
-			id++;	
+		boolean enoughVoyagers = false;
+		while (!enoughVoyagers) {
+			while (input != "") {
+				System.out.print("Voyager " + id + ": ");
+				input = in.nextLine();
+				//input = "";
+				voyagerNames.add(input);
+				id++;	
+			}
+			voyagerNames.remove("");
+			if (voyagerNames.size() == 1) {
+				System.out.println("There must be at least 2 voyagers.\n");
+				input = "default input";
+				id--;
+			} else
+				enoughVoyagers = true;
 		}
-		voyagerNames.remove("");
 		System.out.println();
 		
 		//default voyagers
@@ -193,6 +204,14 @@ public class Main {
 		
 		recruit();
 		action();
+		while (party.isEmpty()) {
+			recruit();
+			String s = "s";
+			if (party.size() > 1)
+				s = "";
+			System.out.println(list(party) + " reset" + s + ".\n");
+			action();
+		}
 		bossFight();
 	}
 
@@ -207,24 +226,30 @@ public class Main {
 	public static void action() {
 		int event;
 		int variable;
-				
-		for (Voyager voyager : voyagers) {
-			if (party.contains(voyager)) {
-				variable = 5;
-				if (party.size() < 2)
-					variable = 3;
-				event = r.nextInt(variable);
-				
-				if (event < 1) { findItem(voyager); } //0
-				else if (event < 3) { //1,2
-					Enemy enemy = enemies.get(r.nextInt(enemies.size()-1));
-					new Encounter(voyager, enemy, party);
-				} else { 
-					new RealmInteraction(voyager, party); } //3,4
-				
-				checkForDeaths(party);
-				System.out.println();
+		
+		tempParty = new ArrayList<>(party);
+		while (!tempParty.isEmpty()) {
+			Voyager voyager = tempParty.get(r.nextInt(tempParty.size()));
+			variable = 5;
+			if (party.size() < 2)
+				variable = 3;
+			event = r.nextInt(variable);
+			
+			if (event < 1) { 
+				findItem(voyager); 
+			} else if (event < 3) { //1,2
+				Enemy enemy = enemies.get(r.nextInt(enemies.size()-1));
+				new Encounter(voyager, enemy, party);
+			} else {
+				Voyager[] voyagers = {voyager, getUniqueVoyager(voyager)};
+				new RealmInteraction(voyagers, party);
+				if (party.size() > 5)
+					tempParty.remove(voyagers[1]);
 			}
+			
+			tempParty.remove(voyager);
+			checkForDeaths(party);
+			System.out.println();
 		}
 	}
 	
@@ -232,6 +257,7 @@ public class Main {
 		String item = items[r.nextInt(4)];
 		System.out.println(voyager.name + " finds a " + item + ".");
 		voyager.inventory.add(item);
+		voyager.totalItems++;
 	}
 	
 	
@@ -247,7 +273,7 @@ public class Main {
 		}
 		
 		for (Voyager v : party) {
-			v.getEXP(100/party.size());
+			v.getEXP(80/party.size());
 		}
 		
 		System.out.println();
@@ -327,7 +353,15 @@ public class Main {
 		
 	}
 	
-	
+	//gets a voyager that is not the one in the parameter
+	public static Voyager getUniqueVoyager(Voyager A) {
+		ArrayList<Voyager> party2 = new ArrayList<>();
+		party2.addAll(party);
+		party2.remove(A);
+		Voyager B = party2.get(r.nextInt(party2.size()));
+		return B;
+	}
+		
 	//gets the specified number of voyagers without repeats
 	public static ArrayList<Voyager> getUniqueVoyagers(int total, ArrayList<Voyager> list) {
 		ArrayList<Voyager> output = new ArrayList<>();
@@ -402,12 +436,22 @@ public class Main {
 		for (Voyager v : voyagers)
 			System.out.printf("%10s   %2d     %d       %d\n", v.name, v.kills, v.deaths, v.voyagerKills);
 		
+		//display voyagers by items found
+		System.out.println("\n\nPress ENTER to view voyager rankings by inventory...");
+		in.nextLine();
+		Collections.sort(voyagers, new SortVoyagersByItems());
+		System.out.println("              Items    Items  Items   Items\n"
+						 + "      Name  Collected  Used   Gifted  Stolen\n"
+						 + "  -------------------------------------------");
+		for (Voyager v : voyagers)
+			System.out.printf("%10s     %2d      %2d      %2d      %2d\n", v.name, v.totalItems, v.itemsUsed, v.itemsGifted, v.itemsStolen);
+		
 		//display voyager(s) by overall relationships
 		System.out.println("\n\nPress ENTER to view voyager rankings by relations...");
 		in.nextLine();
 		Collections.sort(voyagers, new SortVoyagersByRelation());
-		System.out.println("      Name  Average   Highest   Lowest\n"
-						 + "            Relation  Relation  Relation\n"
+		System.out.println("            Average   Highest   Lowest\n"
+						 + "      Name  Relation  Relation  Relation\n"
 						 + "  ---------------------------------------");
 		for (Voyager v : voyagers)
 			System.out.printf("%10s %9f    %2d        %2d\n", v.name, v.getAverageRelation(), v.getHighestRelation(), v.getLowestRelation());
@@ -468,5 +512,12 @@ class SortVoyagersByKills implements Comparator<Voyager> {
 			return v2.kills - v1.kills;
 		else
 			return v1.deaths - v2.deaths;
+	}
+}
+
+class SortVoyagersByItems implements Comparator<Voyager> {
+	@Override
+	public int compare(Voyager v1, Voyager v2) {
+		return v2.totalItems - v1.totalItems;
 	}
 }

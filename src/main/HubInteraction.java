@@ -48,6 +48,8 @@ public class HubInteraction extends Interaction {
 		System.out.println("They come back with " + item + "s.");
 		A.inventory.add(item);
 		B.inventory.add(item);
+		A.totalItems++;
+		B.totalItems++;
 	}
 	
 	protected void rescue() {
